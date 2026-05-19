@@ -1104,18 +1104,21 @@
         const headers = lines[0].map((h) => h.toLowerCase());
 
         const nameIdx = headers.findIndex(
-          (h) => h.includes("Name") && !h.includes("Email Address"),
+          (h) => h.includes("name") && !h.includes("email"),
         );
-        const emailIdx = headers.findIndex((h) => h.includes("Email Address"));
+        const emailIdx = headers.findIndex((h) => h.includes("email"));
         const yearIdx = headers.findIndex(
-          (h) => h.includes("Year & Course") || h.includes("course"),
+          (h) => h.includes("year") || h.includes("course"),
         );
         let ratingIdx = headers.findIndex(
           (h) =>
-            h.includes("Rating") || h.includes("score") || h.includes("point"),
+            h.includes("rating") || h.includes("score") || h.includes("point"),
         );
         const taskIdx = headers.findIndex(
-          (h) => h.includes("Your task") || h.includes("challenge"),
+          (h) =>
+            h.includes("your task") ||
+            h.includes("task") ||
+            h.includes("challenge"),
         );
 
         // try more permissive matches if rating header isn't obvious
