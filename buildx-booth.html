@@ -883,7 +883,6 @@
           participating. Keep trying!
         </div>
       </section>
-
       <div class="divider"></div>
 
       <section class="section" id="mega">
@@ -1023,19 +1022,7 @@
         <p class="section-label">Live Rankings</p>
         <h2 class="section-title">Leaderboard</h2>
 
-        <!-- <div class="lb-config">
-          <div class="lb-config-field">
-            <label for="sheet-url">Google Sheets Published CSV URL</label>
-            <input
-              type="url"
-              id="sheet-url"
-              placeholder="https://docs.google.com/spreadsheets/d/…/pub?output=csv"
-            />
-          </div>
-          <button class="lb-btn" id="lb-load-btn" onclick="loadLeaderboard()">
-            Load
-          </button>
-        </div> -->
+        <!-- Leaderboard URL input and CSV paste removed for public release -->
 
         <div class="lb-status" id="lb-status"></div>
 
@@ -1196,14 +1183,8 @@
         // prefer: provided URL -> saved URL -> default published URL
         const defaultUrl = `https://docs.google.com/spreadsheets/d/e/2PACX-1vTEVewQ9Tz6xGCj5Jdad2iOxUv5ID8WxDqo9h-0J_JVkwXLaSHP-lCv8LCKnX9dVj5_s2pGkjx7-O-Q/pubhtml`;
 
-        let url = providedUrl || null;
-        try {
-          const saved = localStorage.getItem("buildx_sheet_url");
-          if (!url && saved) url = saved;
-        } catch (e) {
-          // ignore localStorage errors
-        }
-        if (!url) url = defaultUrl;
+        // Use fixed default URL only (no overrides or saved URLs)
+        let url = defaultUrl;
 
         // normalize published Google Sheets HTML URLs to CSV export URLs
         let csvUrl = url;
@@ -1260,13 +1241,13 @@
           }
 
           const entries = parseCSV(contents);
-          const firstLine = (json.contents || "").split("\n")[0] || "";
+          const firstLine = (contents || "").split("\n")[0] || "";
           const headerSnippet = firstLine.slice(0, 200);
           if (entries === null) {
             // fallback: try parsing published HTML (pubhtml) which some sheets return
             try {
               const parser = new DOMParser();
-              const doc = parser.parseFromString(json.contents, "text/html");
+              const doc = parser.parseFromString(contents, "text/html");
               const table = doc.querySelector("table");
               if (table) {
                 const rows = Array.from(table.querySelectorAll("tr"));
@@ -1372,9 +1353,7 @@
               "Last updated: " + new Date().toLocaleTimeString();
           if (refreshRow) refreshRow.style.display = "flex";
 
-          try {
-            localStorage.setItem("buildx_sheet_url", url);
-          } catch (e) {}
+          // do not store URL in localStorage for public release
 
           if (autoTimer) clearInterval(autoTimer);
           autoTimer = setInterval(() => loadLeaderboard(url), 60000);
@@ -1391,19 +1370,8 @@
         }
       }
 
-      /* Restore saved URL */
-      // Load leaderboard on page mount / refresh
+      /* Load leaderboard on page mount / refresh */
       document.addEventListener("DOMContentLoaded", () => {
-        try {
-          const saved = localStorage.getItem("buildx_sheet_url");
-          if (saved) {
-            const input = document.getElementById("sheet-url");
-            if (input) input.value = saved;
-            loadLeaderboard(saved);
-            return;
-          }
-        } catch (e) {}
-        // no saved URL — call loader which will fall back to default CSV export
         loadLeaderboard();
       });
     </script>
