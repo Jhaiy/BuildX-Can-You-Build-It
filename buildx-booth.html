@@ -1118,18 +1118,18 @@
         const headers = lines[0].map((h) => h.toLowerCase());
 
         const nameIdx = headers.findIndex(
-          (h) => h.includes("name") && !h.includes("email"),
+          (h) => h.includes("Name") && !h.includes("Email Address"),
         );
-        const emailIdx = headers.findIndex((h) => h.includes("email"));
+        const emailIdx = headers.findIndex((h) => h.includes("Email Address"));
         const yearIdx = headers.findIndex(
-          (h) => h.includes("year") || h.includes("course"),
+          (h) => h.includes("Year & Course") || h.includes("course"),
         );
         let ratingIdx = headers.findIndex(
           (h) =>
-            h.includes("rating") || h.includes("score") || h.includes("point"),
+            h.includes("Rating") || h.includes("score") || h.includes("point"),
         );
         const taskIdx = headers.findIndex(
-          (h) => h.includes("task") || h.includes("challenge"),
+          (h) => h.includes("Your task") || h.includes("challenge"),
         );
 
         // try more permissive matches if rating header isn't obvious
@@ -1193,10 +1193,8 @@
       }
 
       async function loadLeaderboard(providedUrl) {
-        // prefer explicit URL, then saved URL, then a sane default CSV export URL
-        const sheetId = "1IVz2t2RWInGulHquIEvlyJbcLQzD62rOag9B-elUk14";
-        const gid = "929199730";
-        const defaultUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+        // prefer: provided URL -> saved URL -> default published URL
+        const defaultUrl = `https://docs.google.com/spreadsheets/d/e/2PACX-1vTEVewQ9Tz6xGCj5Jdad2iOxUv5ID8WxDqo9h-0J_JVkwXLaSHP-lCv8LCKnX9dVj5_s2pGkjx7-O-Q/pubhtml`;
 
         let url = providedUrl || null;
         try {
@@ -1207,6 +1205,29 @@
         }
         if (!url) url = defaultUrl;
 
+        // normalize published Google Sheets HTML URLs to CSV export URLs
+        let csvUrl = url;
+        try {
+          if (csvUrl.includes("/pubhtml")) {
+            csvUrl = csvUrl.replace(/\/pubhtml.*$/i, "/pub?output=csv");
+          } else if (csvUrl.includes("/pub?")) {
+            // already a pub URL - ensure output=csv
+            if (!/output=csv/.test(csvUrl)) {
+              csvUrl = csvUrl.replace(/\/pub.*$/i, "/pub?output=csv");
+            }
+          } else if (
+            csvUrl.includes("/export?format=csv") ||
+            csvUrl.includes("/spreadsheets/d/")
+          ) {
+            // assume user provided an export URL or direct sheet URL; leave as-is
+          } else if (csvUrl.includes("/e/")) {
+            // handle other published formats by appending output=csv
+            csvUrl = csvUrl.replace(/\/pub.*$/i, "") + "/pub?output=csv";
+          }
+        } catch (e) {
+          csvUrl = url;
+        }
+
         const btn = document.getElementById("lb-load-btn");
         if (btn) {
           btn.disabled = true;
@@ -1216,24 +1237,130 @@
 
         try {
           const proxy =
-            "https://api.allorigins.win/get?url=" + encodeURIComponent(url);
+            "https://api.allorigins.win/get?url=" + encodeURIComponent(csvUrl);
           const res = await fetch(proxy);
           if (!res.ok) throw new Error("network");
           const json = await res.json();
 
-          const entries = parseCSV(json.contents);
+          // Some proxies return a data: URI with base64 CSV (seen with certain published sheets).
+          let contents = json.contents || "";
+          if (
+            typeof contents === "string" &&
+            contents.startsWith("data:") &&
+            contents.includes("base64,")
+          ) {
+            try {
+              const b64 = contents.split("base64,")[1];
+              // decode base64 to text
+              contents = atob(b64);
+              setStatus("Decoding CSV from data URI…");
+            } catch (e) {
+              // ignore decode errors; fall back to raw contents
+            }
+          }
+
+          const entries = parseCSV(contents);
+          const firstLine = (json.contents || "").split("\n")[0] || "";
+          const headerSnippet = firstLine.slice(0, 200);
           if (entries === null) {
-            setStatus(
-              "⚠️ Could not find Name and Score columns. Check your Google Sheet column headers match exactly.",
-              "error",
-            );
+            // fallback: try parsing published HTML (pubhtml) which some sheets return
+            try {
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(json.contents, "text/html");
+              const table = doc.querySelector("table");
+              if (table) {
+                const rows = Array.from(table.querySelectorAll("tr"));
+                if (rows.length > 0) {
+                  const headerCells = Array.from(
+                    rows[0].querySelectorAll("th,td"),
+                  ).map((c) => c.textContent.trim().toLowerCase());
+                  const nameIdx = headerCells.findIndex(
+                    (h) => h.includes("name") && !h.includes("email"),
+                  );
+                  let ratingIdx = headerCells.findIndex(
+                    (h) =>
+                      h.includes("rating") ||
+                      h.includes("score") ||
+                      h.includes("point"),
+                  );
+                  const yearIdx = headerCells.findIndex(
+                    (h) => h.includes("year") || h.includes("course"),
+                  );
+                  if (ratingIdx === -1)
+                    ratingIdx = headerCells.findIndex((h) =>
+                      h.includes("rating:"),
+                    );
+
+                  if (nameIdx !== -1 && ratingIdx !== -1) {
+                    const parsed = rows
+                      .slice(1)
+                      .map((r) => {
+                        const cells = Array.from(
+                          r.querySelectorAll("td,th"),
+                        ).map((c) => c.textContent.trim());
+                        return {
+                          name: cells[nameIdx] || "—",
+                          year: yearIdx !== -1 ? cells[yearIdx] || "—" : "—",
+                          score: parseFloat(cells[ratingIdx]) || 0,
+                          task: "",
+                        };
+                      })
+                      .filter((e) => e.name && !isNaN(e.score))
+                      .sort((a, b) => b.score - a.score);
+
+                    if (parsed.length > 0) {
+                      renderTable(parsed);
+                      setStatus("");
+                    } else {
+                      setStatus(
+                        "⚠️ Could not find Name and Score columns. Check your Google Sheet column headers match exactly. (headers: " +
+                          headerSnippet +
+                          ")",
+                        "error",
+                      );
+                    }
+                  } else {
+                    setStatus(
+                      "⚠️ Could not find Name and Score columns. Check your Google Sheet column headers match exactly. (headers: " +
+                        headerSnippet +
+                        ")",
+                      "error",
+                    );
+                  }
+                } else {
+                  setStatus(
+                    "⚠️ No table rows found in published sheet.",
+                    "error",
+                  );
+                }
+              } else {
+                setStatus(
+                  "⚠️ Could not find Name and Score columns. Check your Google Sheet column headers match exactly. (headers: " +
+                    headerSnippet +
+                    ")",
+                  "error",
+                );
+              }
+            } catch (htmlErr) {
+              setStatus(
+                "⚠️ Could not find Name and Score columns. Check your Google Sheet column headers match exactly. (headers: " +
+                  headerSnippet +
+                  ")",
+                "error",
+              );
+            }
           } else if (entries.length === 0) {
             document.getElementById("lb-content").innerHTML = `
         <div class="lb-empty">
           <span class="lb-empty-icon">📋</span>
           <p>Sheet connected! No scored entries yet — waiting for responses…</p>
         </div>`;
-            setStatus("✓ Sheet connected — waiting for entries.", "ok");
+            setStatus(
+              "✓ Sheet connected — waiting for entries. (headers: " +
+                headerSnippet +
+                ")",
+              "ok",
+            );
           } else {
             renderTable(entries);
             setStatus("");
