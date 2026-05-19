@@ -1111,59 +1111,82 @@
           .split("\n")
           .map((l) =>
             l
-              .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
-              .map((c) => c.replace(/^"|"$/g, "").trim()),
+              .split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/)
+              .map((c) => c.replace(/^\"|\"$/g, "").trim()),
           );
         if (lines.length < 2) return [];
         const headers = lines[0].map((h) => h.toLowerCase());
-        const nameIdx = headers.findIndex((h) => h.includes("name"));
-        const scoreIdx = headers.findIndex(
-          (h) => h.includes("score") || h.includes("point"),
+
+        const nameIdx = headers.findIndex(
+          (h) => h.includes("name") && !h.includes("email"),
+        );
+        const emailIdx = headers.findIndex((h) => h.includes("email"));
+        const yearIdx = headers.findIndex(
+          (h) => h.includes("year") || h.includes("course"),
+        );
+        let ratingIdx = headers.findIndex(
+          (h) =>
+            h.includes("rating") || h.includes("score") || h.includes("point"),
         );
         const taskIdx = headers.findIndex(
           (h) => h.includes("task") || h.includes("challenge"),
         );
-        if (nameIdx === -1 || scoreIdx === -1) return null;
+
+        // try more permissive matches if rating header isn't obvious
+        if (ratingIdx === -1) {
+          ratingIdx = headers.findIndex((h) => h.includes("rating:"));
+        }
+
+        // fallback: pick a numeric column (first column with numeric samples)
+        if (ratingIdx === -1) {
+          for (let c = 0; c < headers.length; c++) {
+            const sample = lines.slice(1, 6).map((r) => r[c]);
+            const numericCount = sample.filter(
+              (v) => v !== undefined && v !== "" && !isNaN(parseFloat(v)),
+            ).length;
+            if (numericCount >= 1) {
+              ratingIdx = c;
+              break;
+            }
+          }
+        }
+
+        if (nameIdx === -1 || ratingIdx === -1) return null;
+
         return lines
           .slice(1)
-          .filter(
-            (r) => r[nameIdx] && r[scoreIdx] && !isNaN(parseFloat(r[scoreIdx])),
-          )
           .map((r) => ({
             name: r[nameIdx] || "—",
-            score: parseFloat(r[scoreIdx]) || 0,
+            year: yearIdx !== -1 ? r[yearIdx] || "—" : "—",
+            score: parseFloat(r[ratingIdx]) || 0,
             task: taskIdx !== -1 ? r[taskIdx] || "" : "",
           }))
+          .filter((e) => e.name && !isNaN(e.score))
           .sort((a, b) => b.score - a.score);
       }
 
       function renderTable(entries) {
         const medals = ["🥇", "🥈", "🥉"];
         const rankClass = ["rank-1", "rank-2", "rank-3"];
-        const hasTask = entries.some((e) => e.task);
 
         const rows = entries
           .map((e, i) => {
             const medal = i < 3 ? medals[i] + " " : "";
             const rc = rankClass[i] || "rank-other";
             const topClass = i === 0 ? "top-row" : "";
-            const taskCell = hasTask
-              ? `<td style="color:var(--muted);font-size:12px">${e.task || "—"}</td>`
-              : "";
             return `<tr class="${topClass}">
       <td><span class="rank-num ${rc}">${medal}${i + 1}</span></td>
       <td style="font-weight:${i < 3 ? 600 : 400}">${e.name}</td>
-      ${taskCell}
+      <td style="color:var(--muted);font-size:13px">${e.year || "—"}</td>
       <td><span class="lb-score">${Math.round(e.score)} pts</span></td>
     </tr>`;
           })
           .join("");
 
-        const taskHeader = hasTask ? "<th>Task</th>" : "";
         document.getElementById("lb-content").innerHTML = `
     <div class="lb-table-wrap">
       <table class="lb-table">
-        <thead><tr><th>#</th><th>Name</th>${taskHeader}<th>Score</th></tr></thead>
+        <thead><tr><th>#</th><th>Name</th><th>Year & Course</th><th>Rating</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
@@ -1173,7 +1196,7 @@
         // prefer explicit URL, then saved URL, then a sane default CSV export URL
         const sheetId = "1IVz2t2RWInGulHquIEvlyJbcLQzD62rOag9B-elUk14";
         const gid = "929199730";
-        const defaultUrl = `https://docs.google.com/spreadsheets/d/e/2PACX-1vTEVewQ9Tz6xGCj5Jdad2iOxUv5ID8WxDqo9h-0J_JVkwXLaSHP-lCv8LCKnX9dVj5_s2pGkjx7-O-Q/pub?output=csv`;
+        const defaultUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
 
         let url = providedUrl || null;
         try {
