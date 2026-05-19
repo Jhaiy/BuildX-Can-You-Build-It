@@ -1,0 +1,1261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BuildX — Can You Build It?</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --yellow: #ffd600;
+        --black: #0a0a0a;
+        --panel: #1a1a1a;
+        --panel2: #222222;
+        --border: #2a2a2a;
+        --text: #f0f0f0;
+        --muted: #888;
+        --green: #22c55e;
+        --orange: #ff7043;
+        --font-d: "Bebas Neue", sans-serif;
+        --font-b: "DM Sans", sans-serif;
+        --pad: clamp(1rem, 4vw, 2rem);
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--black);
+        color: var(--text);
+        font-family: var(--font-b);
+        font-size: clamp(14px, 2vw, 16px);
+        line-height: 1.6;
+        width: 100%;
+      }
+
+      .page-wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding-bottom: 4rem;
+      }
+
+      /* HERO */
+      .hero {
+        background: var(--yellow);
+        padding: clamp(2rem, 5vw, 4rem) var(--pad);
+        position: relative;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: clamp(180px, 30vw, 320px);
+        height: clamp(180px, 30vw, 320px);
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.06);
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        bottom: -80px;
+        left: -40px;
+        width: clamp(200px, 35vw, 380px);
+        height: clamp(200px, 35vw, 380px);
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.04);
+      }
+      .hero-inner {
+        position: relative;
+        z-index: 1;
+        max-width: 700px;
+      }
+      .hero-eyebrow {
+        font-size: clamp(10px, 1.5vw, 12px);
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(0, 0, 0, 0.5);
+        margin-bottom: 0.5rem;
+      }
+      .hero h1 {
+        font-family: var(--font-d);
+        font-size: clamp(4rem, 12vw, 9rem);
+        line-height: 0.88;
+        color: var(--black);
+        letter-spacing: 0.02em;
+      }
+      .hero h1 span {
+        display: block;
+        font-size: clamp(2.5rem, 7vw, 5.5rem);
+      }
+      .hero-sub {
+        margin-top: 1rem;
+        font-size: clamp(13px, 1.8vw, 15px);
+        color: rgba(0, 0, 0, 0.6);
+        max-width: 380px;
+      }
+      .hero-badge {
+        display: inline-block;
+        margin-top: 1.2rem;
+        background: var(--black);
+        color: var(--yellow);
+        font-size: clamp(10px, 1.3vw, 12px);
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        padding: 6px 16px;
+        border-radius: 100px;
+      }
+
+      /* NAV */
+      .nav-tabs {
+        display: flex;
+        background: var(--panel);
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+        scrollbar-width: none;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        padding: 0 var(--pad);
+      }
+      .nav-tabs::-webkit-scrollbar {
+        display: none;
+      }
+      .nav-tab {
+        flex: 0 0 auto;
+        padding: 13px 18px;
+        font-size: clamp(11px, 1.5vw, 12px);
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+        white-space: nowrap;
+      }
+      .nav-tab:hover,
+      .nav-tab.active {
+        color: var(--yellow);
+        border-bottom-color: var(--yellow);
+      }
+
+      /* SECTION */
+      .section {
+        padding: clamp(1.5rem, 4vw, 2.5rem) var(--pad) 0;
+      }
+      .section-label {
+        font-size: clamp(9px, 1.2vw, 11px);
+        font-weight: 600;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--yellow);
+        margin-bottom: 0.4rem;
+      }
+      .section-title {
+        font-family: var(--font-d);
+        font-size: clamp(2rem, 5vw, 3rem);
+        line-height: 1;
+        letter-spacing: 0.03em;
+        color: var(--text);
+        margin-bottom: 1.2rem;
+      }
+
+      /* STEPS */
+      .mechanic-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        background: var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+      }
+      @media (min-width: 700px) {
+        .mechanic-steps {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .step {
+        background: var(--panel);
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+      .step-num {
+        font-family: var(--font-d);
+        font-size: 2rem;
+        line-height: 1;
+        color: var(--yellow);
+        flex-shrink: 0;
+        width: 28px;
+      }
+      .step-content strong {
+        display: block;
+        font-size: clamp(13px, 1.8vw, 14px);
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 2px;
+      }
+      .step-content p {
+        font-size: clamp(12px, 1.6vw, 13px);
+        color: var(--muted);
+      }
+
+      /* BOWLS */
+      .bowls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 1.5rem;
+      }
+      @media (min-width: 700px) {
+        .bowls {
+          grid-template-columns: repeat(2, minmax(0, 240px));
+        }
+      }
+      .bowl-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.1rem 1rem;
+        text-align: center;
+      }
+      .bowl-card.yellow {
+        border-color: var(--yellow);
+      }
+      .bowl-icon {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+        display: block;
+      }
+      .bowl-label {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .bowl-title {
+        font-family: var(--font-d);
+        font-size: 1.4rem;
+        letter-spacing: 0.05em;
+        color: var(--yellow);
+      }
+      .bowl-sub {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      /* ALERT */
+      .alert {
+        background: #1a1500;
+        border: 1px solid #3a3000;
+        border-left: 3px solid var(--yellow);
+        border-radius: 10px;
+        padding: 0.9rem 1rem;
+        font-size: clamp(12px, 1.7vw, 13px);
+        color: #ccb000;
+        margin-bottom: 1.5rem;
+      }
+      .alert strong {
+        color: var(--yellow);
+      }
+
+      /* TASKS */
+      .task-tier {
+        margin-bottom: 1.5rem;
+      }
+      .tier-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .tier-badge {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 100px;
+      }
+      .tier-badge.easy {
+        background: #0f2a1a;
+        color: var(--green);
+      }
+      .tier-badge.medium {
+        background: #1a1500;
+        color: var(--yellow);
+      }
+      .tier-badge.funny {
+        background: #1a0a0a;
+        color: var(--orange);
+      }
+      .tier-line {
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+      .task-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .task-pill {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        padding: 5px 13px;
+        font-size: clamp(11.5px, 1.6vw, 13px);
+        color: var(--text);
+      }
+      .task-pill.easy {
+        border-color: #1a4a2a;
+      }
+      .task-pill.medium {
+        border-color: #2a2000;
+      }
+      .task-pill.funny {
+        border-color: #2a1a10;
+        color: var(--orange);
+      }
+
+      /* REWARDS */
+      .reward-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 1rem;
+      }
+      @media (min-width: 700px) {
+        .reward-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+      @media (min-width: 1000px) {
+        .reward-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+      .reward-pill {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-size: clamp(11.5px, 1.6vw, 13px);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .reward-pill .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: var(--yellow);
+      }
+      .reward-pill.funny .dot {
+        background: var(--orange);
+      }
+
+      /* BOKYA */
+      .bokya-box {
+        background: #1a0a0a;
+        border: 1px solid #3a1a1a;
+        border-left: 3px solid #ef4444;
+        border-radius: 10px;
+        padding: 1rem;
+        font-size: clamp(12px, 1.7vw, 13px);
+        margin-bottom: 1.5rem;
+      }
+      .bokya-title {
+        font-family: var(--font-d);
+        font-size: 1.5rem;
+        color: #ef4444;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px;
+      }
+      .bokya-box p {
+        color: #aa6666;
+      }
+      .bokya-box strong {
+        color: #ff9999;
+      }
+
+      /* MEGA */
+      .mega-hero {
+        background: var(--yellow);
+        border-radius: 16px;
+        padding: clamp(1.25rem, 3vw, 2rem);
+        margin-bottom: 1.25rem;
+        position: relative;
+        overflow: hidden;
+      }
+      .mega-hero::after {
+        content: "BUILDX";
+        position: absolute;
+        right: -10px;
+        bottom: -18px;
+        font-family: var(--font-d);
+        font-size: clamp(5rem, 12vw, 9rem);
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.07);
+        pointer-events: none;
+      }
+      .mega-hero h3 {
+        font-family: var(--font-d);
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        line-height: 1;
+        color: var(--black);
+        letter-spacing: 0.03em;
+        margin-bottom: 6px;
+        position: relative;
+        z-index: 1;
+      }
+      .mega-hero p {
+        font-size: clamp(12px, 1.7vw, 14px);
+        color: rgba(0, 0, 0, 0.6);
+        position: relative;
+        z-index: 1;
+      }
+      .mega-detail {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 1.25rem;
+      }
+      .mega-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+      }
+      .mega-card .mc-label {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .mega-card .mc-value {
+        font-family: var(--font-d);
+        font-size: 1.6rem;
+        color: var(--yellow);
+        line-height: 1;
+        letter-spacing: 0.03em;
+      }
+      .mega-card ul {
+        list-style: none;
+        font-size: clamp(11.5px, 1.6vw, 13px);
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .mega-card ul li::before {
+        content: "→ ";
+        color: var(--yellow);
+      }
+
+      /* JUDGE TABLE */
+      .judge-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 6px;
+        margin-bottom: 1.25rem;
+      }
+      .judge-table thead th {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 0 1rem 4px;
+        text-align: left;
+      }
+      .judge-table thead th:last-child {
+        text-align: right;
+      }
+      .judge-row td {
+        background: var(--panel);
+        padding: 10px 1rem;
+        font-size: clamp(12px, 1.7vw, 14px);
+      }
+      .judge-row td:first-child {
+        border-radius: 10px 0 0 10px;
+      }
+      .judge-row td:last-child {
+        border-radius: 0 10px 10px 0;
+        text-align: right;
+      }
+      .points-badge {
+        display: inline-block;
+        background: var(--yellow);
+        color: var(--black);
+        font-weight: 700;
+        font-size: clamp(12px, 1.6vw, 13px);
+        padding: 3px 10px;
+        border-radius: 100px;
+      }
+
+      /* CHAMPION */
+      .champion-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.4rem;
+        margin-bottom: 2rem;
+      }
+      .champion-card .cc-title {
+        font-family: var(--font-d);
+        font-size: 1.8rem;
+        letter-spacing: 0.05em;
+        color: var(--yellow);
+        margin-bottom: 10px;
+      }
+      .prize-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .prize-list li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: clamp(12px, 1.7vw, 14px);
+        color: var(--text);
+      }
+      .prize-list li::before {
+        content: "★";
+        color: var(--yellow);
+        font-size: 12px;
+        flex-shrink: 0;
+      }
+
+      /* LEADERBOARD */
+      .lb-instructions {
+        background: #111800;
+        border: 1px solid #2a3000;
+        border-left: 3px solid var(--yellow);
+        border-radius: 10px;
+        padding: 1rem 1.1rem;
+        font-size: clamp(11.5px, 1.6vw, 13px);
+        color: #aaaa60;
+        margin-bottom: 1.25rem;
+        line-height: 1.75;
+      }
+      .lb-instructions strong {
+        color: var(--yellow);
+      }
+      .lb-instructions ol {
+        padding-left: 1.2rem;
+        margin-top: 6px;
+      }
+      .lb-instructions ol li {
+        margin-bottom: 3px;
+      }
+
+      .lb-config {
+        background: var(--panel2);
+        border: 1px dashed var(--border);
+        border-radius: 12px;
+        padding: 1.1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      @media (min-width: 600px) {
+        .lb-config {
+          flex-direction: row;
+          align-items: flex-end;
+        }
+      }
+      .lb-config-field {
+        flex: 1;
+      }
+      .lb-config label {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 6px;
+      }
+      .lb-config input {
+        width: 100%;
+        background: var(--black);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 9px 12px;
+        color: var(--text);
+        font-family: var(--font-b);
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      .lb-config input:focus {
+        border-color: var(--yellow);
+      }
+      .lb-btn {
+        background: var(--yellow);
+        color: var(--black);
+        border: none;
+        border-radius: 8px;
+        padding: 10px 22px;
+        font-family: var(--font-b);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: opacity 0.15s;
+      }
+      .lb-btn:hover {
+        opacity: 0.85;
+      }
+      .lb-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .lb-status {
+        font-size: 12px;
+        color: var(--muted);
+        padding: 4px 0 10px;
+        min-height: 28px;
+      }
+      .lb-status.error {
+        color: #ef4444;
+      }
+      .lb-status.ok {
+        color: var(--green);
+      }
+
+      .lb-refresh-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .lb-last-updated {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .lb-refresh-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .lb-refresh-btn:hover {
+        border-color: var(--yellow);
+        color: var(--yellow);
+      }
+
+      .lb-table-wrap {
+        overflow-x: auto;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+      }
+      .lb-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 5px;
+        min-width: 320px;
+      }
+      .lb-table thead th {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 0 1rem 6px;
+        text-align: left;
+      }
+      .lb-table thead th:last-child {
+        text-align: right;
+      }
+      .lb-table tbody tr td {
+        background: var(--panel);
+        padding: 11px 1rem;
+        font-size: clamp(12px, 1.7vw, 14px);
+      }
+      .lb-table tbody tr td:first-child {
+        border-radius: 10px 0 0 10px;
+        width: 48px;
+      }
+      .lb-table tbody tr td:last-child {
+        border-radius: 0 10px 10px 0;
+        text-align: right;
+      }
+      .lb-table tbody tr.top-row td {
+        background: #1c1800;
+      }
+
+      .rank-num {
+        font-family: var(--font-d);
+        font-size: 1.3rem;
+      }
+      .rank-1 {
+        color: var(--yellow);
+      }
+      .rank-2 {
+        color: #c0c0c0;
+      }
+      .rank-3 {
+        color: #cd7f32;
+      }
+      .rank-other {
+        color: var(--muted);
+      }
+
+      .lb-score {
+        display: inline-block;
+        background: var(--yellow);
+        color: var(--black);
+        font-weight: 700;
+        font-size: 13px;
+        padding: 3px 10px;
+        border-radius: 100px;
+      }
+
+      .lb-empty {
+        background: var(--panel);
+        border-radius: 14px;
+        padding: 3rem 1.5rem;
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+        margin-bottom: 1.5rem;
+      }
+      .lb-empty-icon {
+        font-size: 2.5rem;
+        display: block;
+        margin-bottom: 0.75rem;
+        opacity: 0.5;
+      }
+      .lb-empty p {
+        max-width: 280px;
+        margin: 0 auto;
+        line-height: 1.7;
+      }
+
+      /* DIVIDER */
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 1.5rem 0;
+      }
+
+      /* FOOTER */
+      .footer {
+        margin-top: 3rem;
+        padding: 1.5rem var(--pad);
+        border-top: 1px solid var(--border);
+        text-align: center;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .footer strong {
+        color: var(--yellow);
+        font-family: var(--font-d);
+        font-size: 1.1rem;
+        letter-spacing: 0.05em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-wrap">
+      <!-- HERO -->
+      <div class="hero">
+        <div class="hero-inner">
+          <p class="hero-eyebrow">BUILDX Designer Exhibit</p>
+          <h1>CAN YOU<span>BUILD IT?</span></h1>
+          <p class="hero-sub">
+            Pick a task. Build it. Win something. Even if you fail — you still
+            get candy.
+          </p>
+          <span class="hero-badge">⚡ Tech Challenge Booth</span>
+        </div>
+      </div>
+
+      <!-- NAV -->
+      <nav class="nav-tabs">
+        <a class="nav-tab active" href="#how">How to Play</a>
+        <a class="nav-tab" href="#tasks">Tasks</a>
+        <a class="nav-tab" href="#rewards">Rewards</a>
+        <a class="nav-tab" href="#mega">Mega Challenge</a>
+        <a class="nav-tab" href="#leaderboard">🏆 Leaderboard</a>
+      </nav>
+
+      <!-- HOW TO PLAY -->
+      <section class="section" id="how">
+        <p class="section-label">Mechanics</p>
+        <h2 class="section-title">How to Play</h2>
+        <div class="mechanic-steps">
+          <div class="step">
+            <span class="step-num">1</span>
+            <div class="step-content">
+              <strong>Pick from Bowl #1</strong>
+              <p>
+                Draw a paper — that's your building task. Read it carefully.
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step-num">2</span>
+            <div class="step-content">
+              <strong>Pick from Bowl #2</strong>
+              <p>Draw your reward — what you win if you complete the task.</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step-num">3</span>
+            <div class="step-content">
+              <strong>Build It!</strong>
+              <p>You have 30 seconds to 2 minutes. Go!</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step-num">4</span>
+            <div class="step-content">
+              <strong>Claim Your Prize</strong>
+              <p>
+                Finish → claim your reward. Even if you fail — you still get 1
+                candy for trying.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="bowls">
+          <div class="bowl-card yellow">
+            <span class="bowl-icon">🥣</span>
+            <p class="bowl-label">Bowl 1</p>
+            <p class="bowl-title">TASK</p>
+            <p class="bowl-sub">Your building challenge</p>
+          </div>
+          <div class="bowl-card">
+            <span class="bowl-icon">🎁</span>
+            <p class="bowl-label">Bowl 2</p>
+            <p class="bowl-title">REWARD</p>
+            <p class="bowl-sub">What you win</p>
+          </div>
+        </div>
+        <div class="alert">
+          <strong>No one goes home empty-handed!</strong><br />
+          Even if you don't finish — you still get at least 1 candy for
+          participating. Keep trying!
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <section class="section" id="mega">
+        <h2 class="section-title">Can You Build It? Challenge</h2>
+        <div class="mega-hero">
+          <h3>Build IT!</h3>
+          <p>Do you have what it takes?</p>
+          <div class="mega-detail">
+            <div class="mega-card">
+              <p class="mc-label">Time Limit</p>
+              <p class="mc-value">5-10 MIN</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TASKS -->
+      <section class="section" id="tasks">
+        <p class="section-label">Bowl #1</p>
+        <h2 class="section-title">Task List</h2>
+        <div class="task-tier">
+          <div class="tier-header">
+            <span class="tier-badge easy">Easy</span>
+            <div class="tier-line"></div>
+          </div>
+          <div class="task-grid">
+            <span class="task-pill easy">Add a Button</span
+            ><span class="task-pill easy">Add a Navbar</span
+            ><span class="task-pill easy">Change Background Color</span
+            ><span class="task-pill easy">Add 3 Text Elements</span
+            ><span class="task-pill easy">Add an Image</span
+            ><span class="task-pill easy">Create a Footer</span
+            ><span class="task-pill easy">Add a Contact Form</span
+            ><span class="task-pill easy">Change Font Style</span
+            ><span class="task-pill easy">Add a Hero Section</span
+            ><span class="task-pill easy">Add Social Media Icons</span
+            ><span class="task-pill easy">Add a Card Component</span
+            ><span class="task-pill easy">Add a Gallery Section</span
+            ><span class="task-pill easy">Add a Login Form</span
+            ><span class="task-pill easy">Add a Sidebar</span
+            ><span class="task-pill easy">Add a Testimonial Section</span>
+          </div>
+        </div>
+        <div class="task-tier">
+          <div class="tier-header">
+            <span class="tier-badge medium">Medium</span>
+            <div class="tier-line"></div>
+          </div>
+          <div class="task-grid">
+            <span class="task-pill medium">Gaming Homepage</span
+            ><span class="task-pill medium">Coffee Shop Landing Page</span
+            ><span class="task-pill medium">Portfolio Layout</span
+            ><span class="task-pill medium">Shopee-inspired Layout</span
+            ><span class="task-pill medium">Netflix-style Hero</span
+            ><span class="task-pill medium">Modern Landing Page</span
+            ><span class="task-pill medium">School Event Website</span>
+          </div>
+        </div>
+        <div class="task-tier">
+          <div class="tier-header">
+            <span class="tier-badge funny">Funny 🔥</span>
+            <div class="tier-line"></div>
+          </div>
+          <div class="task-grid">
+            <span class="task-pill funny">Ugliest Website Ever</span
+            ><span class="task-pill funny">Website for Aliens</span
+            ><span class="task-pill funny">Only Yellow Website</span
+            ><span class="task-pill funny">Website for Your Crush</span
+            ><span class="task-pill funny">Cursed UI Design</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- REWARDS -->
+      <section class="section" id="rewards">
+        <p class="section-label">Bowl #2</p>
+        <h2 class="section-title">Rewards</h2>
+        <div class="reward-grid">
+          <div class="reward-pill"><span class="dot"></span>1 Candy</div>
+          <div class="reward-pill"><span class="dot"></span>2 Candies</div>
+          <div class="reward-pill"><span class="dot"></span>3 Candies</div>
+          <div class="reward-pill">
+            <span class="dot"></span>Candy + Biscuit
+          </div>
+          <div class="reward-pill"><span class="dot"></span>🎰 Jackpot</div>
+          <div class="reward-pill"><span class="dot"></span>Mystery Prize</div>
+          <div class="reward-pill"><span class="dot"></span>Bonus Draw</div>
+          <div class="reward-pill"><span class="dot"></span>Extra Attempt</div>
+          <div class="reward-pill"><span class="dot"></span>Mini Oreo</div>
+          <div class="reward-pill"><span class="dot"></span>Wafer Prize</div>
+          <div class="reward-pill"><span class="dot"></span>Bokya 💀</div>
+        </div>
+        <div class="bokya-box">
+          <p class="bokya-title">About "Bokya" 💀</p>
+          <p>
+            Getting <strong>Bokya</strong> still means you get
+            <strong>1 tiny candy</strong>. Nobody leaves disappointed. It's all
+            part of the fun — you tried, you played, that counts!
+          </p>
+        </div>
+
+        <p class="section-label">Judging Criteria</p>
+        <table class="judge-table">
+          <thead>
+            <tr>
+              <th>Criteria</th>
+              <th>Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="judge-row">
+              <td>🎨 Creativity</td>
+              <td><span class="points-badge">40 pts</span></td>
+            </tr>
+            <tr class="judge-row">
+              <td>📐 Layout</td>
+              <td><span class="points-badge">30 pts</span></td>
+            </tr>
+            <tr class="judge-row">
+              <td>✅ Completeness</td>
+              <td><span class="points-badge">20 pts</span></td>
+            </tr>
+            <tr class="judge-row">
+              <td>⚡ Speed</td>
+              <td><span class="points-badge">10 pts</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- LEADERBOARD -->
+      <section class="section" id="leaderboard">
+        <p class="section-label">Live Rankings</p>
+        <h2 class="section-title">Leaderboard</h2>
+
+        <!-- <div class="lb-config">
+          <div class="lb-config-field">
+            <label for="sheet-url">Google Sheets Published CSV URL</label>
+            <input
+              type="url"
+              id="sheet-url"
+              placeholder="https://docs.google.com/spreadsheets/d/…/pub?output=csv"
+            />
+          </div>
+          <button class="lb-btn" id="lb-load-btn" onclick="loadLeaderboard()">
+            Load
+          </button>
+        </div> -->
+
+        <div class="lb-status" id="lb-status"></div>
+
+        <!-- <div class="lb-refresh-row" id="lb-refresh-row" style="display: none">
+          <span class="lb-last-updated" id="lb-last-updated"></span>
+          <button class="lb-refresh-btn" onclick="loadLeaderboard()">
+            ↻ Refresh now
+          </button>
+        </div> -->
+
+        <div id="lb-content">
+          <div class="lb-empty">
+            <span class="lb-empty-icon">🏆</span>
+            <p>No data yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <footer class="footer">
+        <strong>BUILDX</strong><br />
+        <span style="margin-top: 4px; display: block"
+          >Designer Exhibit · "Can You Build It?"</span
+        >
+        <span style="display: block; margin-top: 6px; font-size: 11px"
+          >Built with ☕ and yellow paper</span
+        >
+      </footer>
+    </div>
+
+    <script>
+      /* ── NAV ACTIVE STATE ── */
+      const tabs = document.querySelectorAll(".nav-tab");
+      const sections = document.querySelectorAll("section[id]");
+
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", function () {
+          tabs.forEach((t) => t.classList.remove("active"));
+          this.classList.add("active");
+        });
+      });
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = entry.target.getAttribute("id");
+              tabs.forEach((tab) =>
+                tab.classList.toggle(
+                  "active",
+                  tab.getAttribute("href") === "#" + id,
+                ),
+              );
+            }
+          });
+        },
+        { rootMargin: "-30% 0px -60% 0px" },
+      );
+      sections.forEach((s) => observer.observe(s));
+
+      /* ── LEADERBOARD ── */
+      let autoTimer = null;
+
+      function setStatus(msg, type) {
+        const el = document.getElementById("lb-status");
+        el.textContent = msg;
+        el.className = "lb-status" + (type ? " " + type : "");
+      }
+
+      function parseCSV(text) {
+        const lines = text
+          .trim()
+          .split("\n")
+          .map((l) =>
+            l
+              .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+              .map((c) => c.replace(/^"|"$/g, "").trim()),
+          );
+        if (lines.length < 2) return [];
+        const headers = lines[0].map((h) => h.toLowerCase());
+        const nameIdx = headers.findIndex((h) => h.includes("name"));
+        const scoreIdx = headers.findIndex(
+          (h) => h.includes("score") || h.includes("point"),
+        );
+        const taskIdx = headers.findIndex(
+          (h) => h.includes("task") || h.includes("challenge"),
+        );
+        if (nameIdx === -1 || scoreIdx === -1) return null;
+        return lines
+          .slice(1)
+          .filter(
+            (r) => r[nameIdx] && r[scoreIdx] && !isNaN(parseFloat(r[scoreIdx])),
+          )
+          .map((r) => ({
+            name: r[nameIdx] || "—",
+            score: parseFloat(r[scoreIdx]) || 0,
+            task: taskIdx !== -1 ? r[taskIdx] || "" : "",
+          }))
+          .sort((a, b) => b.score - a.score);
+      }
+
+      function renderTable(entries) {
+        const medals = ["🥇", "🥈", "🥉"];
+        const rankClass = ["rank-1", "rank-2", "rank-3"];
+        const hasTask = entries.some((e) => e.task);
+
+        const rows = entries
+          .map((e, i) => {
+            const medal = i < 3 ? medals[i] + " " : "";
+            const rc = rankClass[i] || "rank-other";
+            const topClass = i === 0 ? "top-row" : "";
+            const taskCell = hasTask
+              ? `<td style="color:var(--muted);font-size:12px">${e.task || "—"}</td>`
+              : "";
+            return `<tr class="${topClass}">
+      <td><span class="rank-num ${rc}">${medal}${i + 1}</span></td>
+      <td style="font-weight:${i < 3 ? 600 : 400}">${e.name}</td>
+      ${taskCell}
+      <td><span class="lb-score">${Math.round(e.score)} pts</span></td>
+    </tr>`;
+          })
+          .join("");
+
+        const taskHeader = hasTask ? "<th>Task</th>" : "";
+        document.getElementById("lb-content").innerHTML = `
+    <div class="lb-table-wrap">
+      <table class="lb-table">
+        <thead><tr><th>#</th><th>Name</th>${taskHeader}<th>Score</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+      }
+
+      async function loadLeaderboard(providedUrl) {
+        // prefer explicit URL, then saved URL, then a sane default CSV export URL
+        const sheetId = "1IVz2t2RWInGulHquIEvlyJbcLQzD62rOag9B-elUk14";
+        const gid = "929199730";
+        const defaultUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+
+        let url = providedUrl || null;
+        try {
+          const saved = localStorage.getItem("buildx_sheet_url");
+          if (!url && saved) url = saved;
+        } catch (e) {
+          // ignore localStorage errors
+        }
+        if (!url) url = defaultUrl;
+
+        const btn = document.getElementById("lb-load-btn");
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "Loading…";
+        }
+        setStatus("Fetching data…");
+
+        try {
+          const proxy =
+            "https://api.allorigins.win/get?url=" + encodeURIComponent(url);
+          const res = await fetch(proxy);
+          if (!res.ok) throw new Error("network");
+          const json = await res.json();
+
+          const entries = parseCSV(json.contents);
+          if (entries === null) {
+            setStatus(
+              "⚠️ Could not find Name and Score columns. Check your Google Sheet column headers match exactly.",
+              "error",
+            );
+          } else if (entries.length === 0) {
+            document.getElementById("lb-content").innerHTML = `
+        <div class="lb-empty">
+          <span class="lb-empty-icon">📋</span>
+          <p>Sheet connected! No scored entries yet — waiting for responses…</p>
+        </div>`;
+            setStatus("✓ Sheet connected — waiting for entries.", "ok");
+          } else {
+            renderTable(entries);
+            setStatus("");
+          }
+          const lastEl = document.getElementById("lb-last-updated");
+          const refreshRow = document.getElementById("lb-refresh-row");
+          if (lastEl)
+            lastEl.textContent =
+              "Last updated: " + new Date().toLocaleTimeString();
+          if (refreshRow) refreshRow.style.display = "flex";
+
+          try {
+            localStorage.setItem("buildx_sheet_url", url);
+          } catch (e) {}
+
+          if (autoTimer) clearInterval(autoTimer);
+          autoTimer = setInterval(() => loadLeaderboard(url), 60000);
+        } catch (err) {
+          setStatus(
+            "⚠️ Failed to load. Make sure the sheet is published as CSV and the URL is correct.",
+            "error",
+          );
+        }
+
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Load";
+        }
+      }
+
+      /* Restore saved URL */
+      // Load leaderboard on page mount / refresh
+      document.addEventListener("DOMContentLoaded", () => {
+        try {
+          const saved = localStorage.getItem("buildx_sheet_url");
+          if (saved) {
+            const input = document.getElementById("sheet-url");
+            if (input) input.value = saved;
+            loadLeaderboard(saved);
+            return;
+          }
+        } catch (e) {}
+        // no saved URL — call loader which will fall back to default CSV export
+        loadLeaderboard();
+      });
+    </script>
+  </body>
+</html>
