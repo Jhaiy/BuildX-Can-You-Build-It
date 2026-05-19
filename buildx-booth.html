@@ -567,6 +567,47 @@
         margin-bottom: 1.25rem;
         line-height: 1.75;
       }
+      .register-cta {
+        margin: 1rem 0 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: linear-gradient(90deg, #221900, #2b2000);
+        border: 1px solid rgba(255, 214, 0, 0.08);
+        padding: 14px 16px;
+        border-radius: 12px;
+      }
+      .register-cta .rc-text {
+        color: #fff7d6;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+      }
+      .register-btn {
+        background: var(--yellow);
+        color: var(--black);
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-weight: 700;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(255, 214, 0, 0.08);
+        transform: translateZ(0);
+        animation: pulse 2.2s infinite ease-in-out;
+      }
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 6px 18px rgba(255, 214, 0, 0.08);
+          transform: translateY(0);
+        }
+        50% {
+          box-shadow: 0 18px 40px rgba(255, 214, 0, 0.18);
+          transform: translateY(-3px);
+        }
+        100% {
+          box-shadow: 0 6px 18px rgba(255, 214, 0, 0.08);
+          transform: translateY(0);
+        }
+      }
       .lb-instructions strong {
         color: var(--yellow);
       }
@@ -839,9 +880,9 @@
           <div class="step">
             <span class="step-num">2</span>
             <div class="step-content">
-              <strong>Draw a reward</strong>
+              <strong>Pick a reward</strong>
               <p>
-                Draw from Bowl #2 — what you win if you complete the
+                Pick a reward from Bowl #2 — what you win if you complete the
                 task.
               </p>
             </div>
@@ -882,6 +923,18 @@
           <strong>No one goes home empty-handed!</strong><br />
           Even if you don't finish — you still get at least 1 candy for
           participating. Keep trying!
+        </div>
+        <div class="register-cta" role="region" aria-label="Register">
+          <div class="rc-text">
+            Want to compete? Register now to join the leaderboard!
+          </div>
+          <a
+            class="register-btn"
+            href="https://forms.gle/RRmUx8KE9ZBFCfwS6"
+            target="_blank"
+            rel="noopener"
+            >Register Here →</a
+          >
         </div>
       </section>
       <div class="divider"></div>
@@ -990,25 +1043,25 @@
           <thead>
             <tr>
               <th>Criteria</th>
-              <th>Points</th>
+              <th>Weight</th>
             </tr>
           </thead>
           <tbody>
             <tr class="judge-row">
               <td>🎨 Creativity</td>
-              <td><span class="points-badge">40 pts</span></td>
+              <td><span class="points-badge">High</span></td>
             </tr>
             <tr class="judge-row">
               <td>📐 Layout</td>
-              <td><span class="points-badge">30 pts</span></td>
+              <td><span class="points-badge">Medium</span></td>
             </tr>
             <tr class="judge-row">
               <td>✅ Completeness</td>
-              <td><span class="points-badge">20 pts</span></td>
+              <td><span class="points-badge">Low</span></td>
             </tr>
             <tr class="judge-row">
               <td>⚡ Speed</td>
-              <td><span class="points-badge">10 pts</span></td>
+              <td><span class="points-badge">Medium</span></td>
             </tr>
           </tbody>
         </table>
@@ -1219,14 +1272,56 @@
         setStatus("Fetching data…");
 
         try {
-          const proxy =
-            "https://api.allorigins.win/get?url=" + encodeURIComponent(csvUrl);
-          const res = await fetch(proxy);
-          if (!res.ok) throw new Error("network");
-          const json = await res.json();
+          // Attempt multiple fetch strategies to avoid CORS/proxy issues.
+          let contents = null;
 
-          // Some proxies return a data: URI with base64 CSV (seen with certain published sheets).
-          let contents = json.contents || "";
+          async function tryFetchRaw(u, expectsJsonGet = false) {
+            try {
+              const r = await fetch(u);
+              if (!r.ok) return null;
+              const ct = (r.headers.get("content-type") || "").toLowerCase();
+              if (expectsJsonGet || ct.includes("application/json")) {
+                try {
+                  const j = await r.json();
+                  return j.contents || "";
+                } catch (e) {
+                  return null;
+                }
+              }
+              return await r.text();
+            } catch (e) {
+              return null;
+            }
+          }
+
+          // 1) try direct fetch (may be blocked by CORS but worth trying)
+          contents = await tryFetchRaw(csvUrl);
+
+          // 2) try AllOrigins raw endpoint (returns text)
+          if (!contents) {
+            contents = await tryFetchRaw(
+              "https://api.allorigins.win/raw?url=" +
+                encodeURIComponent(csvUrl),
+            );
+          }
+
+          // 3) try AllOrigins get endpoint (returns JSON {contents: '...'})
+          if (!contents) {
+            contents = await tryFetchRaw(
+              "https://api.allorigins.win/get?url=" +
+                encodeURIComponent(csvUrl),
+              true,
+            );
+          }
+
+          // 4) try ThingProxy as a fallback
+          if (!contents) {
+            contents = await tryFetchRaw(
+              "https://thingproxy.freeboard.io/fetch/" + csvUrl,
+            );
+          }
+
+          if (!contents) throw new Error("network");
           if (
             typeof contents === "string" &&
             contents.startsWith("data:") &&
@@ -1235,6 +1330,21 @@
             try {
               const b64 = contents.split("base64,")[1];
               // decode base64 to text
+              contents = atob(b64);
+              setStatus("Decoding CSV from data URI…");
+            } catch (e) {
+              // ignore decode errors; fall back to raw contents
+            }
+          }
+
+          // Some proxies may return a data: URI with base64 CSV (seen with certain published sheets).
+          if (
+            typeof contents === "string" &&
+            contents.startsWith("data:") &&
+            contents.includes("base64,")
+          ) {
+            try {
+              const b64 = contents.split("base64,")[1];
               contents = atob(b64);
               setStatus("Decoding CSV from data URI…");
             } catch (e) {
